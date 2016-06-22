@@ -39,6 +39,8 @@ def post(ip, api_key):
             
             status_cpu=servers.StatusCpu(conn)           
             
+            status_mem=servers.StatusMemory(conn)
+            
             server.set_conditions('where ip=%s', [ip])
             
             server.yes_reset_conditions=False
@@ -78,7 +80,31 @@ def post(ip, api_key):
                         status_net.update({'last_updated': 0})
                         
                         status_net.insert(post)
+                
+                if 'mem_info' in arr_info:
+                    
+                    mem_info=arr_info['mem_info']
+                    
+                    if type(mem_info).__name__=='list':
                         
+                        #svmem(total=518418432, available=413130752, percent=20.3, used=208052224, free=310366208, active=137457664, inactive=40919040, buffers=20692992, cached=82071552, shared=4820992)
+                        
+                        post={'total': mem_info[0], 'available': mem_info[1], 'percent': mem_info[2], 'used': mem_info[3], 'free': mem_info[4], 'active': mem_info[5], 'inactive': mem_info[6], 'buffers': mem_info[7], 'cached': mem_info[8], 'shared': mem_info[9], 'date': datetime.now(), 'ip': ip, 'last_updated': 1}
+                        
+                        status_mem.reset_require()
+                                
+                        status_mem.create_forms()
+                        
+                        status_mem.set_order(['id'], ['DESC'])
+                        
+                        status_mem.set_limit([1])
+                        
+                        status_mem.set_conditions('WHERE ip=%s', [ip])
+                        
+                        status_mem.update({'last_updated': 0})
+                        
+                        status_mem.insert(post)
+                
                 if 'cpu_idle' in arr_info:
                     
                     status_cpu.reset_require()
@@ -114,7 +140,7 @@ def post(ip, api_key):
                         status_disk.set_conditions('where ip=%s and disk=%s', [ip, disk])
                         
                         method_update({'ip' : ip, 'disk' : disk, 'date' : datetime.now(), 'size' : data[0], 'used' : data[1], 'free' : data[2], 'percent' : data[3]})
-                        
+                
                 #Save status
             
                 server.reset_require()
