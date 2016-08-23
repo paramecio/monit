@@ -139,7 +139,7 @@ def post(ip, api_key):
                     
                     status_cpu.update({'last_updated': 0})
                             
-                    status_cpu.insert({'ip': ip, 'idle': arr_info['cpu_idle'], 'date': now, 'last_updated': 1})
+                    status_cpu.insert({'ip': ip, 'idle': arr_info['cpu_idle'], 'date': now, 'last_updated': 1, 'num_cpu': arr_info['cpu_number']})
                             
                     arr_update['actual_idle']=arr_info['cpu_idle']
                     
