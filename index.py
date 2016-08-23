@@ -23,11 +23,15 @@ def post(ip, api_key):
         
         server=servers.Server(conn)
         
+        data_server=servers.DataServer(conn)
+        
         ipcheck=IpField('', '')
         
         ip=ipcheck.check(ip)
         
         server.set_conditions('WHERE ip=%s', [ip])
+        
+        now=datetime.now()
         
         c=server.select_count()
         
@@ -45,9 +49,11 @@ def post(ip, api_key):
             
             server.yes_reset_conditions=False
             
-            if server.select_count()>0:
+            arr_server=server.select_a_row_where(['id'])
+            
+            if arr_server:
                 
-                arr_update={'status': 1, 'monitoring':1, 'date': datetime.now()}
+                arr_update={'status': 1, 'monitoring':1, 'date': now}
             
                 getpost.obtain_post(['data_json'], True)
             
@@ -58,6 +64,16 @@ def post(ip, api_key):
                 except:
                 
                     return 'Ouch'
+                    
+                server_id=arr_server['id']
+                
+                net_id=None
+                
+                memory_id=None
+                
+                cpu_id=None
+                
+                arr_disk_id=[]
                 
                 if 'net_info' in arr_info:
                     
@@ -65,7 +81,7 @@ def post(ip, api_key):
                     
                     if type(net_info).__name__=='list':
                         
-                        post={'bytes_sent': net_info[0], 'bytes_recv': net_info[1], 'errin': net_info[2], 'errout': net_info[3], 'dropin': net_info[4], 'dropout': net_info[5], 'date': datetime.now(), 'ip': ip, 'last_updated': 1}
+                        post={'bytes_sent': net_info[0], 'bytes_recv': net_info[1], 'errin': net_info[2], 'errout': net_info[3], 'dropin': net_info[4], 'dropout': net_info[5], 'date': now, 'ip': ip, 'last_updated': 1}
                         
                         status_net.reset_require()
                                 
@@ -80,6 +96,8 @@ def post(ip, api_key):
                         status_net.update({'last_updated': 0})
                         
                         status_net.insert(post)
+                        
+                        net_id=status_net.insert_id()
                 
                 if 'mem_info' in arr_info:
                     
@@ -89,7 +107,7 @@ def post(ip, api_key):
                         
                         #svmem(total=518418432, available=413130752, percent=20.3, used=208052224, free=310366208, active=137457664, inactive=40919040, buffers=20692992, cached=82071552, shared=4820992)
                         
-                        post={'total': mem_info[0], 'available': mem_info[1], 'percent': mem_info[2], 'used': mem_info[3], 'free': mem_info[4], 'active': mem_info[5], 'inactive': mem_info[6], 'buffers': mem_info[7], 'cached': mem_info[8], 'shared': mem_info[9], 'date': datetime.now(), 'ip': ip, 'last_updated': 1}
+                        post={'total': mem_info[0], 'available': mem_info[1], 'percent': mem_info[2], 'used': mem_info[3], 'free': mem_info[4], 'active': mem_info[5], 'inactive': mem_info[6], 'buffers': mem_info[7], 'cached': mem_info[8], 'shared': mem_info[9], 'date': now, 'ip': ip, 'last_updated': 1}
                         
                         status_mem.reset_require()
                                 
@@ -104,6 +122,8 @@ def post(ip, api_key):
                         status_mem.update({'last_updated': 0})
                         
                         status_mem.insert(post)
+                        
+                        memory_id=status_mem.insert_id()
                 
                 if 'cpu_idle' in arr_info:
                     
@@ -119,9 +139,13 @@ def post(ip, api_key):
                     
                     status_cpu.update({'last_updated': 0})
                             
-                    status_cpu.insert({'ip': ip, 'idle': arr_info['cpu_idle'], 'date': datetime.now(), 'last_updated': 1})
+                    status_cpu.insert({'ip': ip, 'idle': arr_info['cpu_idle'], 'date': now, 'last_updated': 1})
                             
                     arr_update['actual_idle']=arr_info['cpu_idle']
+                    
+                    cpu_id=status_cpu.insert_id()
+                
+                # Need optimitation
                 
                 if 'disks_info' in arr_info:
                     
@@ -139,7 +163,12 @@ def post(ip, api_key):
                         
                         status_disk.set_conditions('where ip=%s and disk=%s', [ip, disk])
                         
-                        method_update({'ip' : ip, 'disk' : disk, 'date' : datetime.now(), 'size' : data[0], 'used' : data[1], 'free' : data[2], 'percent' : data[3]})
+                        method_update({'ip' : ip, 'disk' : disk, 'date' : now, 'size' : data[0], 'used' : data[1], 'free' : data[2], 'percent' : data[3]})
+                     
+                    status_disk.set_conditions('where ip=%s and disk=%s', [ip, disk])
+                    
+                    arr_disk_id=status_disk.select_to_array(['id'], True)
+                        
                 
                 #Save status
             
@@ -148,6 +177,26 @@ def post(ip, api_key):
                 server.create_forms()
                 
                 server.update(arr_update)
+                
+                # Save middle table for all statuses of a server
+                
+                data_server.create_forms()
+                
+                post={'server_id': server_id, 'net_id': net_id, 'memory_id': memory_id, 'cpu_id': cpu_id, 'ip': ip, 'date': now }
+                
+                z=0
+                
+                for disk_id in arr_disk_id:
+                    
+                    post['disk'+str(z)+'_id']=disk_id['id']
+                    
+                    z+=1
+                    
+                for z in range(z, 6):
+                    
+                    post['disk'+str(z)+'_id']=1
+                
+                data_server.insert(post)
                 
                 return 'Ok'
     
