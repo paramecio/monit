@@ -196,7 +196,17 @@ def post(ip, api_key):
                     
                     post['disk'+str(z)+'_id']=1
                 
-                data_server.insert(post)
+                data_server.yes_reset_conditions=False
+                
+                method_data_update=data_server.insert
+                
+                data_server.set_conditions('where server_id=%s', [server_id])
+                
+                if data_server.select_count()>0:
+                    
+                    method_data_update=data_server.update
+                
+                method_data_update(post)
                 
                 return 'Ok'
     
