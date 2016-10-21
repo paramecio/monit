@@ -186,15 +186,19 @@ def post(ip, api_key):
                 
                 z=0
                 
+                final_id=0
+                
                 for disk_id in arr_disk_id:
                     
-                    post['disk'+str(z)+'_id']=disk_id['id']
+                    if z<6:
                     
-                    z+=1
+                        post['disk'+str(z)+'_id']=disk_id['id']
+                        
+                        z+=1
                     
-                for z in range(z, 6):
+                #for z in range(z, 6):
                     
-                    post['disk'+str(z)+'_id']=1
+                    #post['disk'+str(z)+'_id']=final_id
                 
                 data_server.yes_reset_conditions=False
                 
