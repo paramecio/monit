@@ -2,9 +2,9 @@
 
 import json
 from bottle import post, route
-from settings import config
 from modules.pastafari.models import servers
-from modules.pastafari.libraries.configclass import config_task
+from modules.pastafari.libraries.configtask import config_task
+from settings import config
 from paramecio.cromosoma.extrafields.ipfield import IpField
 from paramecio.cromosoma.webmodel import WebModel
 from paramecio.citoplasma import datetime
@@ -16,7 +16,7 @@ from paramecio.citoplasma.httputils import GetPostFiles
 def post(ip, api_key):
     
     getpost=GetPostFiles()
-    
+
     if config_task.api_key==api_key:
         
         conn=WebModel.connection()
@@ -87,7 +87,7 @@ def post(ip, api_key):
                                 
                         status_net.create_forms()
                         
-                        status_net.set_order(['id'], ['DESC'])
+                        status_net.set_order({'id': 1})
                         
                         status_net.set_limit([1])
                         
@@ -113,7 +113,7 @@ def post(ip, api_key):
                                 
                         status_mem.create_forms()
                         
-                        status_mem.set_order(['id'], ['DESC'])
+                        status_mem.set_order({'id': 1})
                         
                         status_mem.set_limit([1])
                         
@@ -131,7 +131,7 @@ def post(ip, api_key):
                                 
                     status_cpu.create_forms()
                     
-                    status_cpu.set_order(['id'], ['DESC'])
+                    status_cpu.set_order({'id': 1})
                     
                     status_cpu.set_limit([1])
                     

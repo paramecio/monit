@@ -4,7 +4,7 @@ import json
 from bottle import post, route
 from settings import config
 from modules.pastafari.models import servers
-from modules.pastafari.libraries.configclass import config_task
+from modules.pastafari.libraries.configtask import config_task
 from paramecio.cromosoma.extrafields.ipfield import IpField
 from paramecio.cromosoma.webmodel import WebModel
 from paramecio.citoplasma import datetime
